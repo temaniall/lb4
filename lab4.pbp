@@ -1,29 +1,10 @@
-<?php
-$bashScriptPath = dirname(__FILE__) . "/request_script.sh";
-
-$logPath = dirname(__FILE__) . "/access.log";
-
-$scriptLines = [
-    "#!/bin/bash",
-    "STATUS=$(curl -s -o /dev/null -w \"%{http_code}\" -L https://www.altstu.ru/)",
-    "if [ \"\$STATUS\" -eq 200 ]; then",
-    "  echo \"\$(date '+%Y-%m-%d %H:%M:%S') - Connection to altstu.ru: SUCCESS (Status: \$STATUS)\" >> " . $logPath,
-    "else",
-    "  echo \"\$(date '+%Y-%m-%d %H:%M:%S') - Connection to altstu.ru: FAILED (Status: \$STATUS)\" >> " . $logPath,
-    "fi"
-];
-
-$scriptContent = implode("\n", $scriptLines);
-
-file_put_contents($bashScriptPath, $scriptContent);
-
-chmod($bashScriptPath, 0755);
-
-$cron_line = "*/15 * * * * " . escapeshellcmd($bashScriptPath) . "\n";
-
-exec("(crontab -l 2>/dev/null; echo " . escapeshellarg($cron_line) . ") | crontab -");
-
-echo "Готово! Скрипт request_script.sh создан.\n";
-echo "Логи будут записываться в $logPath\n";
-echo "Задача успешно добавлена в cron (запуск каждые 15 минут).\n";
-?>
+while true; do
+    STATUS=$(curl -s -o /dev/null -w "%{http_code}" -L https://www.altstu.ru/)
+    LOG="/tmp/mysql/access.log"
+    if [ "$STATUS" -eq 200 ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') - SUCCESS (Status: $STATUS)" >> $LOG
+    else
+      echo "$(date '+%Y-%m-%d %H:%M:%S') - FAILED (Status: $STATUS)" >> $LOG
+    fi
+    sleep 30
+done
