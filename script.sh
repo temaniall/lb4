@@ -5,6 +5,4 @@ while true; do
       echo "$(date '+%Y-%m-%d %H:%M:%S') - SUCCESS (Status: $STATUS)" >> $LOG
     else
       echo "$(date '+%Y-%m-%d %H:%M:%S') - FAILED (Status: $STATUS)" >> $LOG
-    fi
-    sleep 30
 done
